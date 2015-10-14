@@ -162,7 +162,7 @@ _download_and_unpack_ivy_cache() {
   local scalaVersion=$2
   local playVersion=$3
 
-  baseUrl="http://lang-jvm.s3.amazonaws.com/sbt/v3/sbt-cache"
+  baseUrl="http://lang-jvm.s3.amazonaws.com/sbt/v6/sbt-cache"
   if [ -n "$playVersion" ]; then
     ivyCacheUrl="$baseUrl-play-${playVersion}_${scalaVersion}.tar.gz"
   else
@@ -245,12 +245,28 @@ universal_packaging_default_web_proc() {
   fi
 }
 
+# sed -l basically makes sed replace and buffer through stdin to stdout
+# so you get updates while the command runs and dont wait for the end
+# e.g. sbt stage | indent
+output() {
+  local logfile="$1"
+  local c='s/^/       /'
+
+  case $(uname) in
+      Darwin) tee -a "$logfile" | sed -l "$c";; # mac/bsd sed: -l buffers on line boundaries
+      *)      tee -a "$logfile" | sed -u "$c";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+  esac
+}
+
 run_sbt()
 {
   local javaVersion=$1
   local home=$2
   local launcher=$3
   local tasks=$4
+  local buildLogFile=".heroku/sbt-build.log"
+
+  echo "" > $buildLogFile
 
   case $(ulimit -u) in
   32768) # PX Dyno
@@ -262,7 +278,7 @@ run_sbt()
   esac
 
   status "Running: sbt $tasks"
-  HOME="$home" sbt \
+  HOME="$home" sbt ${SBT_EXTRAS_OPTS} \
     -J-Xmx${maxSbtHeap}M \
     -J-Xms${maxSbtHeap}M \
     -J-XX:+UseCompressedOops \
@@ -275,17 +291,10 @@ run_sbt()
     -Dsbt.global.base=$home \
     -Dsbt.log.noformat=true \
     -no-colors -batch \
-    $tasks < /dev/null 2>&1 | indent
+    $tasks | output $buildLogFile
 
   if [ "${PIPESTATUS[*]}" != "0 0" ]; then
-    error "Failed to run sbt!
-We're sorry this build is failing! If you can't find the issue in application
-code, please submit a ticket so we can help: https://help.heroku.com
-You can also try reverting to our legacy Scala buildpack:
-$ heroku buildpacks:set https://github.com/heroku/heroku-buildpack-scala#legacy
-
-Thanks,
-Heroku"
+    handle_sbt_errors $buildLogFile
   fi
 }
 

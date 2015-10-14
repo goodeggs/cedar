@@ -1,5 +1,5 @@
-Heroku buildpack: Python
-========================
+# Heroku buildpack: Python
+![python-banner](https://cloud.githubusercontent.com/assets/51578/8914205/ecf2047c-346b-11e5-98c5-42547f9f4410.jpg)
 
 This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for Python apps, powered by [pip](http://www.pip-installer.org/).
 
@@ -17,7 +17,7 @@ Example usage:
     $ git push heroku master
     ...
     -----> Python app detected
-    -----> Installing runtime (python-2.7.9)
+    -----> Installing runtime (python-2.7.10)
     -----> Installing dependencies using pip
            Downloading/unpacking requests (from -r requirements.txt (line 1))
            Installing collected packages: requests
@@ -40,13 +40,13 @@ Specify a Runtime
 You can also provide arbitrary releases Python with a `runtime.txt` file.
 
     $ cat runtime.txt
-    python-3.4.3
+    python-3.5.0
 
 Runtime options include:
 
-- python-2.7.9
-- python-3.4.3
-- pypy-2.4.0 (unsupported, experimental)
+- python-2.7.10
+- python-3.5.0
+- pypy-2.6.1 (unsupported, experimental)
 - pypy3-2.4.0 (unsupported, experimental)
 
 Other [unsupported runtimes](https://github.com/heroku/heroku-buildpack-python/tree/master/builds/runtimes) are available as well.

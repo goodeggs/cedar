@@ -1,5 +1,86 @@
 # heroku-buildpack-php CHANGELOG
 
+## v79 (2015-10-08)
+
+### CHG
+
+- Enable Apache modules `ssl_module` and `mod_proxy_html` (with `mod_xml2enc` dependency) by default [David Zuelke]
+
+## v78 (2015-10-01)
+
+### ADD
+
+- PHP/7.0.0RC4 [David Zuelke]
+- PHP/5.5.30 [David Zuelke]
+- PHP/5.6.14 [David Zuelke]
+
+## v77 (2015-09-17)
+
+### ADD
+
+- PHP/7.0.0RC3 [David Zuelke]
+
+## v76 (2015-09-08)
+
+### ADD
+
+- ext-mongo/1.6.11 [David Zuelke]
+- PHP/7.0.0RC2 [David Zuelke]
+- PHP/5.5.29 [David Zuelke]
+- PHP/5.6.13 [David Zuelke]
+
+## v75 (2015-08-21)
+
+### FIX
+
+- Prevent potential (benign) Python notice during builds
+
+## v74 (2015-08-21)
+
+### FIX
+
+- Warning about missing composer.lock is thrown incorrectly for some composer.json files
+
+## v72 (2015-08-21)
+
+### ADD
+
+- PHP/5.6.12 [David Zuelke]
+- PHP/5.5.28 [David Zuelke]
+- ext-newrelic/4.23.4.113 [David Zuelke]
+- PHP/7.0.0RC1 [David Zuelke]
+- Support custom `composer.json`/`composer.lock` file names via `$COMPOSER` env var [David Zuelke]
+
+### CHG
+
+- A composer.lock is now required if there is any entry in the "require" section of composer.json [David Zuelke]
+
+## v71 (2015-07-14)
+
+### ADD
+
+- ext-newrelic/4.23.1.107 [David Zuelke]
+
+### FIX
+
+- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
+- Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json [David Zuelke]
+
+## v70 (2015-07-10)
+
+### ADD
+
+- PHP/7.0.0beta1 [David Zuelke]
+- PHP/5.6.11 [David Zuelke]
+- PHP/5.5.27 [David Zuelke]
+- ext-newrelic/4.23.0.102 [David Zuelke]
+- ext-mongo/1.6.10 [David Zuelke]
+- Support auto-tuning for IX dyno type [David Zuelke]
+
+### CHG
+
+- Warn about missing extensions for "blackfire" and "newrelic" add-ons during startup [David Zuelke]
+
 ## v69 (2015-06-12)
 
 ### ADD
