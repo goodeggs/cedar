@@ -1,7 +1,7 @@
 all: build
 
 build:
-	docker build -t convox/cedar .
+	docker build -t goodeggs/cedar .
 
 vendor:
 	@rm -rf buildkit
