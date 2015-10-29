@@ -1,4 +1,6 @@
 #!/bin/sh -e
+build_dir=$1
+cache_dir=$2
 
 buildpack="/buildkit"
 
@@ -7,8 +9,9 @@ if [ -f /build/.buildpacks ]; then
   buildpack="/tmp/multipack"
 fi
 
-$buildpack/bin/detect /build /cache
-$buildpack/bin/compile /build /cache
+mkdir -p $cache_dir
 
-rm -rf /app
-cp -r /build /app
+cd $build_dir
+
+$buildpack/bin/detect $build_dir $cache_dir
+$buildpack/bin/compile $build_dir $cache_dir
