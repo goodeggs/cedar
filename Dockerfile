@@ -22,7 +22,8 @@ ONBUILD COPY . /build
 ONBUILD RUN mkdir -p /cache && \
   /usr/bin/build /build /cache && \
   rm -rf /app && \
-  mv /build /app
+  mv /build /app && \
+  chown -R app /app
 
 ONBUILD USER app
 ONBUILD WORKDIR /app
