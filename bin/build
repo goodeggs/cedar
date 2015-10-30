@@ -9,9 +9,9 @@ if [ -f /build/.buildpacks ]; then
   buildpack="/tmp/multipack"
 fi
 
-mkdir -p $cache_dir
-
 cd $build_dir
 
+export HOME=$build_dir
 $buildpack/bin/detect $build_dir $cache_dir
 $buildpack/bin/compile $build_dir $cache_dir
+

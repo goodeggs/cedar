@@ -15,15 +15,16 @@ ONBUILD ENTRYPOINT ["/usr/bin/profile"]
 
 ONBUILD EXPOSE 3000
 ONBUILD ENV PORT 3000
+
+ONBUILD USER app
 ONBUILD ENV HOME /app
+ONBUILD WORKDIR /app
 
 ONBUILD COPY . /build
 
-ONBUILD RUN mkdir -p /cache && \
+ONBUILD RUN sudo mkdir -p /cache && \
+  sudo chown -R app /build /cache && \
   /usr/bin/build /build /cache && \
-  rm -rf /app && \
-  mv /build /app && \
-  chown -R app /app
+  sudo rm -rf /app && \
+  sudo mv /build /app
 
-ONBUILD USER app
-ONBUILD WORKDIR /app
