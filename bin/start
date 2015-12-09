@@ -22,6 +22,8 @@ if [ "$cmd" == "" ]; then
   exit 1
 fi
 
+export DYNO=$proc.`hostname`
+
 if [ "$proc" == "web" ]; then
   exec web "$cmd"
 else
