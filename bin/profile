@@ -4,4 +4,7 @@ for FILE in $(find /app/.profile.d/ -name '*.sh'); do
   source $FILE
 done
 
+# set a default DYNO
+export DYNO=run.`hostname`
+
 exec "$@"
