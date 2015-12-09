@@ -2,6 +2,7 @@ FROM heroku/cedar:14
 
 COPY bin/build /usr/bin/build
 COPY bin/profile /usr/bin/profile
+COPY bin/start /usr/bin/start
 COPY buildkit /buildkit
 
 ENV CURL_TIMEOUT 600
