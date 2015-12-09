@@ -1,0 +1,18 @@
+#!/bin/sh
+set -ex
+
+# Script grifted from:
+# https://github.com/convox/rack/blob/master/api/bin/gen-cert
+
+mkdir -p /etc/cedar
+
+openssl genrsa -des3 -passout pass:x -out /etc/cedar/server.pass.key 2048
+openssl rsa -passin pass:x -in /etc/cedar/server.pass.key -out /etc/cedar/server.key
+
+rm /etc/cedar/server.pass.key
+
+openssl req -new -key /etc/cedar/server.key -out /etc/cedar/server.csr \
+  -subj "/C=US/ST=California/L=San Francisco/O=Good Eggs/OU=Kernel/CN=*.${AWS_REGION}.elb.amazonaws.com"
+openssl x509 -req -days 365 -in /etc/cedar/server.csr -signkey /etc/cedar/server.key -out /etc/cedar/server.crt
+
+cat /etc/cedar/server.crt /etc/cedar/server.key > /etc/cedar/server.pem

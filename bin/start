@@ -22,4 +22,9 @@ if [ "$cmd" == "" ]; then
   exit 1
 fi
 
-exec "$cmd"
+if [ "$proc" == "web" ]; then
+  exec web "$cmd"
+else
+  exec "$cmd"
+fi
+
