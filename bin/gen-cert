@@ -1,18 +1,25 @@
-#!/bin/sh
-set -ex
+#!/bin/bash
+set -e
+set -o pipefail
+# set -x # debug
 
-# Script grifted from:
-# https://github.com/convox/rack/blob/master/api/bin/gen-cert
+AWS_REGION=$1
 
-mkdir -p /etc/cedar
+if [ "$AWS_REGION" == "" ]; then
+  echo "usage: gen-cert <AWS Region>"
+  exit 1
+fi
 
-openssl genrsa -des3 -passout pass:x -out /etc/cedar/server.pass.key 2048
-openssl rsa -passin pass:x -in /etc/cedar/server.pass.key -out /etc/cedar/server.key
+dest=`mktemp -d`
 
-rm /etc/cedar/server.pass.key
+cd $dest
 
-openssl req -new -key /etc/cedar/server.key -out /etc/cedar/server.csr \
-  -subj "/C=US/ST=California/L=San Francisco/O=Good Eggs/OU=Kernel/CN=*.${AWS_REGION}.elb.amazonaws.com"
-openssl x509 -req -days 365 -in /etc/cedar/server.csr -signkey /etc/cedar/server.key -out /etc/cedar/server.crt
+openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+  -subj "/C=US/ST=California/L=San Francisco/O=Good Eggs/OU=DevOps/CN=*.${AWS_REGION}.elb.amazonaws.com" \
+  -keyout server.key -out server.crt 2>/dev/null
 
-cat /etc/cedar/server.crt /etc/cedar/server.key > /etc/cedar/server.pem
+# echos a combined PEM like haproxy wants
+cat server.crt server.key
+
+# cleanup
+rm -rf $dest

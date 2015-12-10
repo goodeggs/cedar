@@ -9,9 +9,9 @@ RUN apt-get -y update && \
     adduser --disabled-password --gecos '' --ingroup sudo app && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
+COPY bin/start /start
 COPY bin/build /usr/bin/build
 COPY bin/profile /usr/bin/profile
-COPY bin/start /usr/bin/start
 COPY bin/gen-cert /usr/bin/gen-cert
 COPY bin/web /usr/bin/web
 COPY buildkit /buildkit
