@@ -32,7 +32,7 @@ ONBUILD WORKDIR /app
 ONBUILD COPY . /build
 
 ONBUILD RUN sudo mkdir -p /cache && \
-  sudo chown -R app /build /cache && \
+  sudo chown -R app /buildkit /build /cache && \
   /usr/bin/build /build /cache && \
   sudo rm -rf /app && \
   sudo mv /build /app
