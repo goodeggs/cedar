@@ -7,4 +7,4 @@ AWS_REGION=`curl -s -m3 http://169.254.169.254/latest/dynamic/instance-identity/
 sudo haproxy -f /etc/cedar/haproxy.cfg &
 
 export PORT=3000
-exec "$@"
+eval exec $@
