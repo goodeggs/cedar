@@ -1,8 +1,20 @@
 # Node.js Buildpack Changelog
 
-## v85 (2015-10-08)
+## Pending
+
+Several edge-case fixes
+
+- Enables compiling the same directory multiple times
+- Updates tests for Node v5
+- Moves node_modules/.bin binaries to last on the PATH
+
+## v86 (2015-10-08)
 
 Fixes piped output buffering issues
+
+## v85 (2015-10-08)
+
+Fixes piped output buffering issues (unsuccessful)
 
 - https://github.com/heroku/heroku-buildpack-nodejs/issues/273
 

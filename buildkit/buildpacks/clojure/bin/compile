@@ -9,43 +9,33 @@ export BUILD_DIR=$1
 export CACHE_DIR=$2
 export ENV_DIR=$3
 
-# Load config vars into environment
-export_env_dir() {
-  env_dir=$1
-  whitelist_regex=${2:-''}
-  blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|JAVA_OPTS)$'}
-  if [ -d "$env_dir" ]; then
-    for e in $(ls $env_dir); do
-      echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
-      export "$e=$(cat $env_dir/$e)"
-      :
-    done
-  fi
-}
+BP_DIR=$(cd $(dirname $0)/..; pwd)
+BIN_DIR=$BP_DIR/bin
+LIB_DIR=$BP_DIR/lib
+. $LIB_DIR/common.sh
 
 export_env_dir $ENV_DIR
 
 # Load common JVM functionality from https://github.com/heroku/heroku-buildpack-jvm-common
 JVM_COMMON_BUILDPACK=${JVM_COMMON_BUILDPACK:-https://codon-buildpacks.s3.amazonaws.com/buildpacks/heroku/jvm-common.tgz}
 mkdir -p /tmp/jvm-common
-curl --silent --location $JVM_COMMON_BUILDPACK | tar xzm -C /tmp/jvm-common --strip-components=1
+curl --retry 3 --silent --location $JVM_COMMON_BUILDPACK | tar xzm -C /tmp/jvm-common --strip-components=1
 . /tmp/jvm-common/bin/util
 . /tmp/jvm-common/bin/java
+install_java_with_overlay ${BUILD_DIR}
 
-# Install JDK
-javaVersion=$(detect_java_version ${BUILD_DIR})
-echo -n "-----> Installing OpenJDK ${javaVersion}..."
-install_java ${BUILD_DIR} ${javaVersion}
-jdk_overlay ${BUILD_DIR}
-echo "done"
+# Install Node.js if needed
+detect_and_install_nodejs ${BUILD_DIR}
 
 # Determine Leiningen version
 if [ "$(grep ":min-lein-version[[:space:]]\+\"2" $BUILD_DIR/project.clj)" != "" ]; then
-  LEIN_VERSION="2.5.2"
+  LEIN_VERSION="2.5.3"
   LEIN_BIN_SOURCE="$(dirname $0)/../opt/lein2"
   if [ "$(grep :uberjar-name $BUILD_DIR/project.clj)" != "" ]; then
       LEIN_BUILD_TASK="${LEIN_BUILD_TASK:-uberjar}"
       LEIN_INCLUDE_IN_SLUG="${LEIN_INCLUDE_IN_SLUG:-no}"
+  elif [ "$(grep lein-npm $BUILD_DIR/project.clj)" != "" ]; then
+      LEIN_BUILD_TASK=${LEIN_BUILD_TASK:-"with-profile production do deps, compile :all"}
   else
       LEIN_BUILD_TASK=${LEIN_BUILD_TASK:-"with-profile production compile :all"}
   fi
@@ -57,8 +47,8 @@ else
     export LEIN_NO_DEV=y
   fi
   RLWRAP=yes
-  echo "       WARNING: no :min-lein-version found in project.clj; using $LEIN_VERSION."
-  echo "       You probably don't want this!"
+  warning "No :min-lein-version found in project.clj; using $LEIN_VERSION.
+You probably don't want this!"
 fi
 
 # install leiningen jar
@@ -70,7 +60,7 @@ if [ ! -r "$LEIN_JAR_CACHE_PATH" ]; then
   echo "-----> Installing Leiningen"
   echo "       Downloading: leiningen-$LEIN_VERSION-standalone.jar"
   mkdir -p $(dirname $LEIN_JAR_CACHE_PATH)
-  curl --silent --show-error --max-time 120 -L -o "$LEIN_JAR_CACHE_PATH" $LEIN_JAR_URL
+  curl --retry 3 --silent --show-error --max-time 120 -L -o "$LEIN_JAR_CACHE_PATH" $LEIN_JAR_URL
 else
   echo "-----> Using cached Leiningen $LEIN_VERSION"
 fi
@@ -88,7 +78,7 @@ if [ "$RLWRAP" = "yes" ]; then
   RLWRAP_BIN_PATH=$BUILD_DIR"/.lein/bin/rlwrap"
   echo "       Downloading: rlwrap-0.3.7"
   mkdir -p $(dirname $RLWRAP_BIN_PATH)
-  curl --silent --show-error --max-time 60 -L -o $RLWRAP_BIN_PATH $RLWRAP_BIN_URL
+  curl --retry 3 --silent --show-error --max-time 60 -L -o $RLWRAP_BIN_PATH $RLWRAP_BIN_URL
   chmod +x $RLWRAP_BIN_PATH
 fi
 
@@ -104,14 +94,12 @@ LEIN_PROFILES_SOURCE="$(dirname $0)/../opt/profiles.clj"
 cp -n $LEIN_PROFILES_SOURCE "$BUILD_DIR/.lein/profiles.clj"
 
 # unpack existing cache
-CACHE_STORE_DIR=$CACHE_DIR"/.m2"
-CACHE_TARGET_DIR=$BUILD_DIR"/.m2"
-rm -rf $CACHE_TARGET_DIR
-if [ -d $CACHE_STORE_DIR ]; then
-  cp -r $CACHE_STORE_DIR $CACHE_TARGET_DIR
-else
-  mkdir -p $CACHE_TARGET_DIR
-fi
+CACHED_DIRS=".m2 node_modules"
+for DIR in $CACHED_DIRS; do
+  if [ ! -d $BUILD_DIR/$DIR ]; then
+    cache_copy $DIR $CACHE_DIR $BUILD_DIR
+  fi
+done
 
 echo "-----> Building with Leiningen"
 
@@ -157,7 +145,8 @@ fi
 PROFILE_PATH="$BUILD_DIR/.profile.d/clojure.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo "export LEIN_NO_DEV=\"\${LEIN_NO_DEV:-yes}\"" >> $PROFILE_PATH
-echo 'export PATH="$HOME/.jdk/bin:$HOME/.lein/bin:$PATH"' >> $PROFILE_PATH
+echo 'export PATH="$HOME/.heroku/nodejs/bin:$HOME/.jdk/bin:$HOME/.lein/bin:$PATH"' >> $PROFILE_PATH
+echo 'export RING_ENV="${RING_ENV:-production}"' >> $PROFILE_PATH
 
 # default Procfile
 if [ ! -r $BUILD_DIR/Procfile ]; then
@@ -171,15 +160,16 @@ if [ ! -r $BUILD_DIR/Procfile ]; then
 fi
 
 # repack cache with new assets
-rm -rf $CACHE_STORE_DIR
-mkdir -p $(dirname $CACHE_STORE_DIR)
-cp -r $CACHE_TARGET_DIR $CACHE_STORE_DIR
+mkdir -p $CACHE_DIR
+for DIR in $CACHED_DIRS; do
+  cache_copy $DIR $BUILD_DIR $CACHE_DIR
+done
 
 if [ "$LEIN_INCLUDE_IN_SLUG" = "no" ]; then
     rm "$LEIN_JAR_SLUG_PATH"
-    rm -rf "$CACHE_TARGET_DIR"
+    rm -rf $CACHED_DIRS
 fi
 
 if [ "$LEIN_VERSION" = "1.7.1" ]; then
-    rm -rf "$CACHE_TARGET_DIR"
+    rm -rf $CACHED_DIRS
 fi

@@ -19,18 +19,18 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 ENV_DIR=$3
 
-
-CACHED_DIRS=".heroku"
-
 # Static configurations for virtualenv caches.
 VIRTUALENV_LOC=".heroku/venv"
 LEGACY_TRIGGER="lib/python2.7"
 
-DEFAULT_PYTHON_VERSION="python-2.7.10"
+DEFAULT_PYTHON_VERSION="python-2.7.11"
 DEFAULT_PYTHON_STACK="cedar"
 PYTHON_EXE="/app/.heroku/python/bin/python"
 PIP_VERSION="7.1.2"
-SETUPTOOLS_VERSION="18.3.2"
+SETUPTOOLS_VERSION="18.7.1"
+
+# Common Problem Warnings
+export WARNINGS_LOG=$(mktemp)
 
 # Setup bpwatch
 export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
@@ -57,6 +57,9 @@ bpwatch start compile
 
 # Syntax sugar.
 source $BIN_DIR/utils
+
+# Import collection of warnings.
+source $BIN_DIR/warnings
 
 # Directory Hacks for path consistiency.
 APP_DIR='/app'
@@ -106,6 +109,12 @@ export PKG_CONFIG_PATH=/app/.heroku/vendor/lib/pkg-config:$BUILD_DIR/.heroku/ven
 # Switch to the repo's context.
 cd $BUILD_DIR
 
+# Warn for lack of Procfile.
+if [[ ! -f Procfile ]]; then
+  puts-warn 'Warning: Your application is missing a Procfile. This file tells Heroku how to run your application.'
+  puts-warn 'Learn more: https://devcenter.heroku.com/articles/procfile'
+fi
+
 # Experimental pre_compile hook.
 bpwatch start pre_compile
   source $BIN_DIR/steps/hooks/pre_compile
@@ -145,9 +154,14 @@ bpwatch stop clear_old_venvs
 
 # Restore old artifacts from the cache.
 bpwatch start restore_cache
-  for dir in $CACHED_DIRS; do
-    cp -R $CACHE_DIR/$dir . &> /dev/null || true
-  done
+    mkdir -p .heroku
+
+    cp -R $CACHE_DIR/.heroku/python .heroku/ &> /dev/null || true
+    cp -R $CACHE_DIR/.heroku/python-stack .heroku/ &> /dev/null || true
+    cp -R $CACHE_DIR/.heroku/python-version .heroku/ &> /dev/null || true
+    cp -R $CACHE_DIR/.heroku/vendor .heroku/ &> /dev/null || true
+    cp -R $CACHE_DIR/.heroku/venv .heroku/ &> /dev/null || true
+
 bpwatch stop restore_cache
 
 set +e
@@ -209,10 +223,20 @@ bpwatch stop post_compile
 
 # Store new artifacts in cache.
 bpwatch start dump_cache
-  for dir in $CACHED_DIRS; do
-    rm -rf $CACHE_DIR/$dir
-    cp -R $dir $CACHE_DIR/
-  done
+
+  rm -rf $CACHE_DIR/.heroku/python
+  rm -rf $CACHE_DIR/.heroku/python-version
+  rm -rf $CACHE_DIR/.heroku/python-stack
+  rm -rf $CACHE_DIR/.heroku/vendor
+  rm -rf $CACHE_DIR/.heroku/venv
+
+  mkdir -p $CACHE_DIR/.heroku
+  cp -R .heroku/python $CACHE_DIR/.heroku/
+  cp -R .heroku/python-version $CACHE_DIR/.heroku/
+  cp -R .heroku/python-stack $CACHE_DIR/.heroku/ &> /dev/null || true
+  cp -R .heroku/vendor $CACHE_DIR/.heroku/ &> /dev/null || true
+  cp -R .heroku/venv $CACHE_DIR/.heroku/ &> /dev/null || true
+
 bpwatch stop dump_cache
 
 # ### Fin.

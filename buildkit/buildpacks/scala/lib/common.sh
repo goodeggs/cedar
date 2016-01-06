@@ -62,7 +62,18 @@ _has_buildPropertiesFile() {
 
 _has_playConfig() {
   local ctxDir=$1
-  test -e $ctxDir/conf/application.conf
+  test -e $ctxDir/conf/application.conf ||
+      test "$IS_PLAY_APP" = "true" ||
+      (test -n "$PLAY_CONF_FILE" &&
+          test -e "$PLAY_CONF_FILE" &&
+          test "$IS_PLAY_APP" != "false") ||
+      (# test for default Play 2.3 and 2.4 setup.
+          test -d $ctxDir/project &&
+          test -r $ctxDir/project/plugins.sbt &&
+          test -n "$(grep "addSbtPlugin(\"com.typesafe.play\" % \"sbt-plugin\"" $ctxDir/project/plugins.sbt | grep -v ".*//.*addSbtPlugin")" &&
+          test -r $ctxDir/build.sbt &&
+          test -n "$(grep "enablePlugins(Play" $ctxDir/build.sbt | grep -v ".*//.*enablePlugins(Play")" &&
+          test "$IS_PLAY_APP" != "false")
 }
 
 _has_playPluginsFile() {
@@ -162,14 +173,14 @@ _download_and_unpack_ivy_cache() {
   local scalaVersion=$2
   local playVersion=$3
 
-  baseUrl="http://lang-jvm.s3.amazonaws.com/sbt/v6/sbt-cache"
+  baseUrl="http://lang-jvm.s3.amazonaws.com/sbt/v8/sbt-cache"
   if [ -n "$playVersion" ]; then
     ivyCacheUrl="$baseUrl-play-${playVersion}_${scalaVersion}.tar.gz"
   else
     ivyCacheUrl="$baseUrl-base.tar.gz"
   fi
 
-  curl --silent --max-time 60 --location $ivyCacheUrl | tar xzm -C $sbtUserHome
+  curl --retry 3 --silent --max-time 60 --location $ivyCacheUrl | tar xzm -C $sbtUserHome
   if [ $? -eq 0 ]; then
     mv $sbtUserHome/.sbt/* $sbtUserHome
     rm -rf $sbtUserHome/.sbt

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEFAULT_MAVEN_VERSION="3.3.3"
+DEFAULT_MAVEN_VERSION="3.3.9"
 
 export_env_dir() {
   env_dir=$1
@@ -43,7 +43,7 @@ download_maven() {
   local installDir=$2
   local mavenHome=$3
   rm -rf $mavenHome
-  curl --silent --max-time 60 --location ${mavenUrl} | tar xzm -C $installDir
+  curl --retry 3 --silent --max-time 60 --location ${mavenUrl} | tar xzm -C $installDir
   chmod +x $mavenHome/bin/mvn
 }
 
