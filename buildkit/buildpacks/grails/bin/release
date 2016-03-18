@@ -9,13 +9,13 @@ config_vars:
   PATH: .jdk/bin:.sbt_home/bin:/usr/local/bin:/usr/bin:/bin
   JAVA_OPTS: -Xmx384m -Xss512k -XX:+UseCompressedOops
 addons:
-  heroku-postgresql:dev
+  heroku-postgresql
 EOF
 
 if [ -f $BUILD_DIR/server/defaultRunnerJar ]; then
   cat <<EOF
 
 default_process_types:
-  web:      java \$JAVA_OPTS -jar $(cat $BUILD_DIR/server/defaultRunnerJar) --expand-war \$RUNNER_OPTS --port \$PORT --uri-encoding UTF-8 target/*.war
+  web:      java \$JAVA_OPTS -jar $(cat $BUILD_DIR/server/defaultRunnerJar) \$RUNNER_OPTS --port \$PORT target/*.war
 EOF
 fi

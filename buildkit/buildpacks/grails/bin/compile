@@ -44,14 +44,32 @@ Thanks,
 Heroku"
 }
 
+validate_grails_version() {
+  local grailsVersion=${1}
+
+  if [[ "${grailsVersion}" =~ ^3.* ]]; then
+    error "Unsupported version!
+Grails 3 requires the Gradle buildpack. For more information see:
+https://devcenter.heroku.com/articles/deploying-gradle-apps-on-heroku"
+  fi
+}
+
 install_grails()
 {
   VER_TO_INSTALL=$1
   GRAILS_URL="http://dist.springframework.org.s3.amazonaws.com/release/GRAILS/grails-$VER_TO_INSTALL.zip"
+  GRAILS_ALT_URL="https://github.com/grails/grails-core/releases/download/v${VER_TO_INSTALL}/grails-${VER_TO_INSTALL}.zip"
+
+  validate_grails_version $VER_TO_INSTALL
 
   GRAILS_ZIP_FILE="grails-heroku.zip"
   echo "-----> Installing Grails $VER_TO_INSTALL....."
-  curl --silent --max-time 150 --location $GRAILS_URL -o $GRAILS_ZIP_FILE
+
+  status=$(curl --retry 3 --silent --head -w %{http_code} -L ${GRAILS_URL} -o /dev/null)
+  if [ "$status" != "200" ]; then
+    GRAILS_URL=${GRAILS_ALT_URL}
+  fi
+  curl --retry 3 --silent --max-time 150 --location $GRAILS_URL -o $GRAILS_ZIP_FILE
 
   # Error checking
   if [ ! -f $GRAILS_ZIP_FILE ]; then
@@ -196,6 +214,7 @@ if [ ! -d server ] ; then
         curl -fs http://s3pository.heroku.com/maven-central/com/github/jsimone/webapp-runner/$WEBAPP_RUNNER_VERSION/webapp-runner-$WEBAPP_RUNNER_VERSION.jar > $DEFAULT_RUNNER_JAR
       	echo "vendored:$WEBAPP_RUNNER_VERSION" > server/webappRunnerVersion
       	echo "vendored:$WEBAPP_RUNNER_VERSION" > $CACHE_DIR/webappRunnerVersion
+        echo "export RUNNER_OPTS=\"\$RUNNER_OPTS --expand-war --uri-encoding UTF-8\"" > .profile.d/grails.sh
     fi
 
     echo "$DEFAULT_RUNNER_JAR" > server/defaultRunnerJar
