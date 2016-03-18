@@ -20,20 +20,3 @@ COPY conf/haproxy.cfg /etc/cedar/haproxy.cfg
 ENV CURL_TIMEOUT 600
 ENV STACK cedar-14
 
-ONBUILD ENTRYPOINT ["/usr/bin/profile"]
-
-# for web processes
-ONBUILD EXPOSE 4443
-
-ONBUILD USER app
-ONBUILD ENV HOME /app
-ONBUILD WORKDIR /app
-
-ONBUILD COPY . /build
-
-ONBUILD RUN sudo mkdir -p /cache && \
-  sudo chown -R app /buildkit /build /cache && \
-  /usr/bin/build /build /cache && \
-  sudo rm -rf /app && \
-  sudo mv /build /app
-
