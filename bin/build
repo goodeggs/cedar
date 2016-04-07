@@ -2,6 +2,11 @@
 build_dir=$1
 cache_dir=$2
 
+if [ "z$RANCH_BUILD_ENV" != "z" ]; then
+  echo 'loading $RANCH_BUILD_ENV'
+  eval export $(echo "$RANCH_BUILD_ENV" | jq -r '. as $in | keys[] | [., @sh "\($in[.])"] | "\(.[0])=\(.[1])"')
+fi
+
 buildpack="/buildkit"
 
 if [ -f /build/.buildpacks ]; then

@@ -4,7 +4,7 @@ RUN apt-get -y update && \
     apt-get install -y software-properties-common && \
     add-apt-repository ppa:vbernat/haproxy-1.6 && \
     apt-get -y update && \
-    apt-get install -y haproxy sudo && \
+    apt-get install -y haproxy sudo jq && \
     apt-get clean && \
     adduser --disabled-password --gecos '' --ingroup sudo app && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
