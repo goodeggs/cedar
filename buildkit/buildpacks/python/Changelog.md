@@ -1,5 +1,13 @@
 # Python Buildpack Changelog
 
+## v80 (2016-04-05)
+
+Improved pip-pop compatibility with latest pip releases.
+
+## v79 (2016-03-22)
+
+Compatibility improvements with heroku-apt-buildpack.
+
 ## v78 (2016-03-18)
 
 Added automatic configuration of Gunicorn's `FORWARDED_ALLOW_IPS` setting.

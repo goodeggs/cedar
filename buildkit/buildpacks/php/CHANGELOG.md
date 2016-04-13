@@ -1,5 +1,56 @@
 # heroku-buildpack-php CHANGELOG
 
+## v101 (2016-04-12)
+
+### ADD
+
+- ext-event/2.0.2 [David Zuelke]
+- ext-mongodb/1.1.6 [David Zuelke]
+- Apache/2.4.20 [David Zuelke]
+- ext-blackfire/1.10.3 [David Zuelke]
+
+### CHG
+
+- Use Composer/1.0.0 stable [David Zuelke]
+
+## v100 (2016-03-31)
+
+### ADD
+
+- ext-imap for all PHP versions [David Zuelke]
+- ext-pq/1.0.0 and 2.0.0 [David Zuelke]
+- PHP/7.0.5 [David Zuelke]
+- PHP/5.6.20 [David Zuelke]
+- PHP/5.5.34 [David Zuelke]
+
+### CHG
+
+- Return to using built-in default value for the `pcre.jit` PHP INI setting [David Zuelke]
+- Use Composer/1.0.0beta2 [David Zuelke]
+- Use first configured platform repository to load components for bootstrapping [David Zuelke]
+
+## v99 (2016-03-23)
+
+### FIX
+
+- Automatic extensions (blackfire, newrelic) may fail to get installed with many dependencies [David Zuelke]
+
+## v98 (2016-03-21)
+
+### ADD
+
+- ext-event/2.0.1 [David Zuelke]
+- ext-mongo/1.6.13 [David Zuelke]
+- ext-mongodb/1.1.5 [David Zuelke]
+- ext-oauth/2.0.1 [David Zuelke]
+- ext-newrelic/6.1.0.157 [David Zuelke]
+- ext-blackfire/1.10.0 [David Zuelke]
+
+### CHG
+
+- Remove GitHub API rate limit checks during build time [David Zuelke]
+- Change pcre.jit to 0 in php.ini [David Zuelke]
+
 ## v97 (2016-03-10)
 
 ### CHG

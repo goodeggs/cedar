@@ -80,12 +80,23 @@ ln -s $build_dir/.heroku/php /app/.heroku/php
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
+# prepend the default repo to the list configured by the user
+# list of repositories to use is in ascening order of precedence
+HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
+if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
+	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
+	notice_inline "Default platform repository disabled."
+	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
+	s3_url=$(echo "$HEROKU_PHP_PLATFORM_REPOSITORIES" | cut -f1 -d" " | sed 's/[^/]*$//')
+	notice_inline "Bootstrapping using ${s3_url}..."
+fi
+
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
-curl --silent --location "${s3_url}php-min-7.0.4.tar.gz" | tar xz -C $build_dir/.heroku/php-min
-curl --silent --location "${s3_url}composer-1.0.0-beta1.tar.gz" | tar xz -C $build_dir/.heroku/php
+curl --silent --location "${s3_url}php-min-7.0.5.tar.gz" | tar xz -C $build_dir/.heroku/php-min
+curl --silent --location "${s3_url}composer-1.0.0.tar.gz" | tar xz -C $build_dir/.heroku/php
 # this alias is just for now while we install platform packages
 composer() {
     /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
@@ -102,15 +113,6 @@ echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/e
 # composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
-
-# prepend the default repo to the list configured by the user
-# list of repositories to use is in ascening order of precedence
-HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
-if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
-	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
-	notice_inline "Default platform repository disabled."
-	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
-fi
 
 status "Installing platform packages..."
 
@@ -223,12 +225,6 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 else
     # don't forget to remove any stored key if it's gone from the env
     composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-    if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
-        notice "You've reached the GitHub API's request rate limit.
-Composer will try and fall back to slower downloads from source.
-It's strongly recommended you use a custom OAuth token; see
-http://devcenter.heroku.com/articles/php-support#custom-github-oauth-tokens"
-    fi
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
