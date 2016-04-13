@@ -18,4 +18,6 @@ vendor:
 	@rm -rf buildkit
 	@mkdir -p buildkit
 	@cd buildkit && curl https://buildkits.herokuapp.com/buildkit/default.tgz | tar xz
+	@cd ..
+	@patch -p1 < buildkit.patch
 

@@ -9,7 +9,7 @@ procfile = ARGV.first
 # read existing procfile
 if File.exists?(procfile)
   existing = File.read(procfile).split("\n").map do |line|
-    if line =~ /^([A-Za-z0-9_]+):\s*(.+)$/
+    if line =~ /^([A-Za-z0-9-]+):\s*(.+)$/
       [$1, $2]
     end
   end.compact
