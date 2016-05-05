@@ -24,9 +24,5 @@ fi
 
 export DYNO=$proc.`hostname`
 
-if [ "$proc" == "web" ]; then
-  exec /usr/bin/web $cmd
-else
-  exec $cmd
-fi
+exec $cmd
 
