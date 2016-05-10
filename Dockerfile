@@ -1,16 +1,15 @@
-FROM heroku/cedar:14
+FROM buildpack-deps:trusty
 
-RUN apt-get -y update && \
-    apt-get install -y sudo jq && \
-    apt-get clean && \
-    adduser --disabled-password --gecos '' --ingroup sudo app && \
-    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      sudo \
+      jq \
+    && rm -rf /var/lib/apt/lists/* \
+    && adduser --disabled-password --gecos '' --ingroup sudo app \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
+    && ln -s /usr/bin/start /start
 
-COPY bin/start /start
-COPY bin/build /usr/bin/build
-COPY bin/profile /usr/bin/profile
+COPY bin/* /usr/bin/
 COPY buildkit /buildkit
 
-ENV CURL_TIMEOUT 600
-ENV STACK cedar-14
+ENV CURL_TIMEOUT=600 STACK=cedar-14
 
