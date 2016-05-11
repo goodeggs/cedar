@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# correct memory measurement for docker containers
+# used to set WEB_CONCURRENCY in the nodejs buildpack
+if [ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+  bytes=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+  export MEMORY_AVAILABLE=$(( $bytes / 1000000 ))
+fi
+
 for FILE in $(find /app/.profile.d/ -name '*.sh'); do
   source $FILE
 done
