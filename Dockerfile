@@ -2,6 +2,7 @@ FROM buildpack-deps:trusty
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       sudo \
+      ruby \
       jq \
     && rm -rf /var/lib/apt/lists/* \
     && adduser --disabled-password --gecos '' --ingroup sudo app \
