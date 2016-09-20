@@ -1,4 +1,7 @@
 #!/bin/bash
+set -o errexit    # always exit on error
+set -o pipefail   # don't ignore exit codes when piping output
+set -o nounset    # fail on unset variables
 
 # correct memory measurement for docker containers
 # used to set WEB_CONCURRENCY in the nodejs buildpack
@@ -14,4 +17,4 @@ done
 # set a default DYNO
 export DYNO="${PROCESS:-run}.$(hostname)"
 
-exec "$@"
+eval exec $@
