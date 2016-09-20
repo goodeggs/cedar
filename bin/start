@@ -1,28 +1,20 @@
 #!/bin/bash
-APP_PATH=/app
+set -o errexit    # always exit on error
+set -o pipefail   # don't ignore exit codes when piping output
+set -o nounset    # fail on unset variables
 
-proc=$1
-
-if [ "$proc" == "" ]; then
-  echo "usage: start <process>"
-  exit 1
+# correct memory measurement for docker containers
+# used to set WEB_CONCURRENCY in the nodejs buildpack
+if [ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then
+  bytes=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
+  export MEMORY_AVAILABLE=$(( $bytes / 1000000 ))
 fi
 
-procfile="$APP_PATH/Procfile"
+for FILE in $(find /app/.profile.d/ -name '*.sh'); do
+  source $FILE
+done
 
-if [ ! -r $procfile ]; then
-  echo "cannot read $procfile"
-  exit 1
-fi
+# set a default DYNO
+export DYNO="${PROCESS:-run}.$(hostname)"
 
-cmd=`cat $APP_PATH/Procfile | grep "^[[:space:]]*$proc[[:space:]]*:" | sed "s/^[[:space:]]*$proc[[:space:]]*:[[:space:]]*//"`
-
-if [ "$cmd" == "" ]; then
-  echo "'$proc' process is not in your Procfile"
-  exit 1
-fi
-
-export DYNO=$proc.`hostname`
-
-eval exec $cmd
-
+eval exec $@
