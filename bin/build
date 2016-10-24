@@ -10,7 +10,7 @@ fi
 buildpack="/buildkit"
 
 if [ -f /build/.buildpacks ]; then
-  git clone https://github.com/ddollar/heroku-buildpack-multi /tmp/multipack
+  git clone https://github.com/goodeggs/heroku-buildpack-multi /tmp/multipack
   buildpack="/tmp/multipack"
 fi
 
