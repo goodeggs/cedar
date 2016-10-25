@@ -1,5 +1,8 @@
 FROM buildpack-deps:trusty
 
+ENV LC_ALL=C
+ENV CURL_TIMEOUT=600 STACK=cedar-14
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
       sudo \
       ruby \
@@ -12,8 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY bin/* /usr/bin/
 COPY buildkit /buildkit
 
-ENV CURL_TIMEOUT=600 STACK=cedar-14
-
 ENTRYPOINT ["/start"]
 CMD ["/bin/bash"]
 
@@ -23,11 +24,9 @@ WORKDIR /app
 
 ONBUILD ARG RANCH_BUILD_ENV
 
-ONBUILD COPY . /build
+ONBUILD COPY . /app
 
 ONBUILD RUN sudo mkdir -p /cache && \
-  sudo chown -R app /buildkit /build /cache && \
-  /usr/bin/build /build /cache && \
-  sudo rm -rf /app && \
-  sudo mv /build /app
+  sudo chown -R app /buildkit /app /cache && \
+  /usr/bin/build /app /cache
 

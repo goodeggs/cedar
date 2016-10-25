@@ -9,7 +9,7 @@ fi
 
 buildpack="/buildkit"
 
-if [ -f /build/.buildpacks ]; then
+if [ -f $build_dir/.buildpacks ]; then
   git clone https://github.com/goodeggs/heroku-buildpack-multi /tmp/multipack
   buildpack="/tmp/multipack"
 fi
@@ -17,6 +17,8 @@ fi
 cd $build_dir
 
 export HOME=$build_dir
+export DOCKER_BUILD=1 # fixes python buildpack
+
 $buildpack/bin/detect $build_dir $cache_dir
 $buildpack/bin/compile $build_dir $cache_dir
 
