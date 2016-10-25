@@ -1,6 +1,6 @@
 # Heroku Buildpack for Node.js
 
-![nodesjs](https://cloud.githubusercontent.com/assets/51578/8882955/3f0c3980-3219-11e5-8666-bc9c926a7356.jpg)
+![nodejs](https://cloud.githubusercontent.com/assets/51578/13712672/efdf2a40-e792-11e5-82ef-492478cbc0dc.png)
 
 This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for Node.js apps.
 
@@ -46,11 +46,11 @@ Having trouble? Dig it? Feature request?
 
 - [help.heroku.com](https://help.heroku.com/)
 - [@hunterloftis](http://twitter.com/hunterloftis)
-- [github issues](https://github.com/heroku/heroku-buildpack-nodejs/issues)
+- [GitHub issues](https://github.com/heroku/heroku-buildpack-nodejs/issues)
 
 ## Hacking
 
-To make changes to this buildpack, fork it on Github.
+To make changes to this buildpack, fork it on GitHub.
 Push up changes to your fork, then create a new Heroku app to test it,
 or configure an existing app to use your buildpack:
 

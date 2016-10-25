@@ -44,7 +44,7 @@ indent() {
 export_env_dir() {
   local env_dir=$1
   local whitelist_regex=${2:-''}
-  local blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH)$'}
+  local blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|IFS)$'}
   if [ -d "$env_dir" ]; then
     for e in $(ls $env_dir); do
       echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
@@ -52,4 +52,15 @@ export_env_dir() {
       :
     done
   fi
+}
+
+curl_retry_on_18() {
+  local ec=18;
+  local attempts=0;
+  while [[ $ec -eq 18 && $attempts -lt 3 ]]; do
+    ((attempts++))
+    curl "$@" # -C - would return code 33 if unsupported by server
+    ec=$?
+  done
+  return $ec
 }

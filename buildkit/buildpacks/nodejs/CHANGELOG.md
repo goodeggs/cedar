@@ -1,6 +1,16 @@
 # Node.js Buildpack Changelog
 
-## Latest
+## Current
+
+- Do not fail build on output errors
+- Do not prune before install (shrinkwrap unsupported by prune)
+- Extended warnings (missing dependencies, econnreset, no start)
+
+## v90 (2016-4-20)
+
+- Blacklists the LANG env var
+
+## v89 (2016-3-11)
 
 - Adds heroku-prebuild script
 - Adds heroku-postbuild script

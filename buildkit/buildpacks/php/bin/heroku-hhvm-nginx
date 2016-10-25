@@ -191,7 +191,7 @@ hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { ech
 composer() {
     local composer_bin=$(which ./composer.phar composer | head -n1)
     # check if we the composer binary is executable by HHVM
-    if file --brief --dereference $composer_bin | grep "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+    if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
         # run it directly; it's probably a bash script or similar (homebrew-php does this)
         $composer_bin "$@"
     else
@@ -199,7 +199,7 @@ composer() {
     fi
 }
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
-COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer bin-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
