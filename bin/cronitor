@@ -1,0 +1,25 @@
+#!/bin/sh
+
+cronitor_id=$1
+shift
+
+cronitor() {
+  cmd=$1
+  http_code=$( curl -sSm 10 -o /dev/null --write-out '%{http_code}' "https://cronitor.link/${cronitor_id}/${cmd}" )
+  exit_code=$?
+  echo "cronitor $cronitor_id $cmd [curl: $exit_code http: $http_code]"
+}
+
+cronitor run
+
+"$@"
+code=$?
+
+if [ $code -eq 0 ]; then
+  cronitor complete
+else
+  cronitor fail
+fi
+
+exit $code
+
